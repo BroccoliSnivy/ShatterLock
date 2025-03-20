@@ -1,7 +1,7 @@
 #Requirements:
 
-libpass
-pillow
-pycryptodome
-pycryptodomex
-ttkbootstrap
+pip install libpass
+pip install pillow
+pip install pycryptodome
+pip install pycryptodomex
+pip install ttkbootstrap
