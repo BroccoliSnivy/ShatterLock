@@ -1,8 +1,10 @@
 import ttkbootstrap as tb
 from tkinter import ttk
+import tkinter as tk
+from tkinter import font
 import json
 import os
-from utils.db_utils import db_file, retrieve_passwords_for_display
+from utils.db_utils import *
 from utils.secure_operations import decrypt_data
 from user_settings.user_settings import save_user_settings, load_user_settings
 from utils.entry_manager import AddEntryForm
@@ -48,12 +50,12 @@ class MainBox(tb.Frame):
         # ===== Sidebar (Filter Panel) =====
         sidebar = tb.Labelframe(self, text="Categories", bootstyle="light")
         sidebar.grid(row=2, column=0, sticky="ns", padx=5)
-        tb.Button(sidebar, text="All", bootstyle="secondary-outline", command=self.filter_all).pack(fill="x", padx=10, pady=5)
-        tb.Button(sidebar, text="Social Media", bootstyle="primary-outline", command=self.filter_social).pack(fill="x", padx=10, pady=5)
-        tb.Button(sidebar, text="Work", bootstyle="danger-outline", command=self.filter_work).pack(fill="x", padx=10, pady=5)
-        tb.Button(sidebar, text="Shopping", bootstyle="warning-outline", command=self.filter_work).pack(fill="x", padx=10, pady=5)
-        tb.Button(sidebar, text="Security & Tech", bootstyle="info-outline", command=self.filter_work).pack(fill="x", padx=10, pady=5)
-        tb.Button(sidebar, text="Banking", bootstyle="success-outline", command=self.filter_banking).pack(fill="x", padx=10, pady=5)
+        tb.Button(sidebar, text="All", bootstyle="secondary-outline", command=lambda: self.filter_entries("All")).pack(fill="x", padx=10, pady=5)
+        tb.Button(sidebar, text="Social Media", bootstyle="primary-outline", command=lambda: self.filter_entries("Social Media")).pack(fill="x", padx=10, pady=5)
+        tb.Button(sidebar, text="Work", bootstyle="danger-outline", command=lambda: self.filter_entries("Work")).pack(fill="x", padx=10, pady=5)
+        tb.Button(sidebar, text="Shopping", bootstyle="warning-outline", command=lambda: self.filter_entries("Shopping")).pack(fill="x", padx=10, pady=5)
+        tb.Button(sidebar, text="Security & Tech", bootstyle="info-outline", command=lambda: self.filter_entries("Security & Tech")).pack(fill="x", padx=10, pady=5)
+        tb.Button(sidebar, text="Banking", bootstyle="success-outline", command=lambda: self.filter_entries("Banking")).pack(fill="x", padx=10, pady=5)
 
         # ===== Main Content (Treeview) =====
         content_frame = tb.Labelframe(self, text=f"{db_file}", bootstyle="light")
@@ -81,7 +83,7 @@ class MainBox(tb.Frame):
         self.tree.configure(yscroll=y_scroll.set)
 
         self.tree.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        y_scroll.grid(row=0, column=1, sticky="ns")
+        y_scroll.grid(row=0, column=1, sticky="ns", padx=5, pady=5)
 
         self.tree.bind("<Double-1>", self.on_double_click)
 
@@ -90,8 +92,6 @@ class MainBox(tb.Frame):
         button_frame.grid(row=3, column=0, columnspan=2, pady=10)
 
         tb.Button(button_frame, text="Add Entry", bootstyle="success", command=self.add_entry).pack(side="left", padx=10)
-        tb.Button(button_frame, text="Edit Entry", bootstyle="warning", command=self.edit_entry).pack(side="left", padx=10)
-        tb.Button(button_frame, text="Delete Entry", bootstyle="danger", command=self.delete_entry).pack(side="left", padx=10)
     
     def load_entries(self):
         """Load all entries from the database and display them in the Treeview."""
@@ -100,31 +100,70 @@ class MainBox(tb.Frame):
         entries = retrieve_passwords_for_display()  # Fetch entries from DB
 
         for entry in entries:
-            website, username, decrypted_password, description, category = entry
+            website, username, decrypted_password, description, _category = entry
             self.tree.insert("", "end", values=(website, username, decrypted_password, description))
 
     def on_double_click(self, event):
         """Opens the edit entry form when an entry in the Treeview is double-clicked."""
         selected_item = self.tree.selection()
-
+        
         if not selected_item:
             return  # No item selected, exit function
 
         item_data = self.tree.item(selected_item)
         values = item_data["values"]
 
-        # Ensure the values list has at least 5 elements (avoid IndexError)
         website = values[0] if len(values) > 0 else ""
         username = values[1] if len(values) > 1 else ""
-        encrypted_password = values[2] if len(values) > 2 else ""
-        description = values[3] if len(values) > 3 else ""
-        category = values[4] if len(values) > 4 else ""
 
-        # Decrypt password only if it's present
-        decrypted_password = decrypt_data(encrypted_password, self.der_key) if encrypted_password else ""
+        # Fetch full entry from DB (ensures correct decryption)
+        full_entry = get_entry_from_db(website, username)
 
-        # Open Edit Entry Form (even if some fields are missing)
-        edit_form = EditEntryForm(self, self.der_key, website, username, decrypted_password, description, category)
+        if not full_entry:
+            return  # No entry found, exit function
+
+        decrypted_password = decrypt_data(full_entry[2], self.der_key) if full_entry[2] else ""
+
+        # Open Edit Entry Form with decrypted password
+        self.edit_form = EditEntryForm(self, self.der_key, full_entry[0], full_entry[1], decrypted_password, full_entry[3], full_entry[4], self.tree)
+
+    def filter_entries(self, category):
+        """Updates Treeview with filtered category data."""
+        self.tree.delete(*self.tree.get_children())  # Clear the Treeview
+        
+        filtered_entries = get_entries_by_category(category)  # Get filtered data
+        
+        for entry in filtered_entries:
+            self.tree.insert("", "end", values=entry)  # Insert filtered data
+
+    # def on_double_click(self, event):
+    #     """Opens the edit entry form when an entry in the Treeview is double-clicked."""
+    #     selected_item = self.tree.selection()
+        
+    #     if not selected_item:
+    #         return  # No item selected, exit function
+
+    #     item_data = self.tree.item(selected_item)
+    #     values = item_data["values"]
+
+    #     website = values[0] if len(values) > 0 else ""
+    #     username = values[1] if len(values) > 1 else ""
+
+    #     # Get full entry from the database
+    #     full_entry = get_entry_from_db(website, username)
+
+    #     if not full_entry:
+    #         print("Error: Entry not found in the database!")  # Debugging output
+    #         return
+
+    #     # Extract values from database
+    #     website, username, encrypted_password, description, category = full_entry
+
+    #     # Decrypt password
+    #     decrypted_password = decrypt_data(encrypted_password, self.der_key) if encrypted_password else ""
+
+    #     # Open Edit Entry Form
+    #     edit_form = EditEntryForm(self, self.der_key, website, username, decrypted_password, description, category, self.tree)
 
     def change_theme(self, theme_name):
         self.style.theme_use(theme_name)

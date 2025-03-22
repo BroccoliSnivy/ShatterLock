@@ -153,19 +153,36 @@ class AddEntryForm:
         """Store the new entry in the database."""
         website = self.website_entry.get().strip()
         username = self.username_entry.get().strip()
-        password = self.password_entry.get().strip()
+        password = self.password_entry.get().strip()  # Keep as plain text
         description = self.description_entry.get("1.0", "end-1c").strip()
         category = self.category_var.get()
 
         if website and username and password:
-            encrypted_password = encrypt_data(password, self.encryption_key)  # Encrypt password
-            store_entry(website, username, encrypted_password, description, category, self.encryption_key)  # Store in DB
+            store_entry(website, username, password, description, category, self.encryption_key)  # Pass plain password
 
             # Re-enable MainBox's root window and close the form
             self.root_window.attributes('-disabled', False)
             self.window.destroy()
         else:
             print("All fields except description must be filled!")  # Replace with a popup message if needed
+
+    # def submit_entry(self):
+    #     """Store the new entry in the database."""
+    #     website = self.website_entry.get().strip()
+    #     username = self.username_entry.get().strip()
+    #     password = self.password_entry.get().strip()
+    #     description = self.description_entry.get("1.0", "end-1c").strip()
+    #     category = self.category_var.get()
+
+    #     if website and username and password:
+    #         encrypted_password = encrypt_data(password, self.encryption_key)  # Encrypt password
+    #         store_entry(website, username, encrypted_password, description, category, self.encryption_key)  # Store in DB
+
+    #         # Re-enable MainBox's root window and close the form
+    #         self.root_window.attributes('-disabled', False)
+    #         self.window.destroy()
+    #     else:
+    #         print("All fields except description must be filled!")  # Replace with a popup message if needed
 
     def on_close(self):
         """Re-enable the main application window when this form is closed manually."""

@@ -15,6 +15,7 @@ from tkinter import messagebox
 from utils.secure_operations import *
 from utils.db_utils import *
 from utils.password_gen import generate_password
+from resources.tooltip import ToolTip
 
 #Importing the file for test run purposes
 from getpass import getpass
@@ -143,6 +144,9 @@ class MasterPasswordManager:
             messagebox.showerror("Error", "Passwords do not match!")
             return
         
+        if len(password) < 12:
+            messagebox.showerror("Password must be atleast 12 characters long!")
+        
         set_master_password(password)
         # Here you should store the password securely (hash it and save in DB)
         messagebox.showinfo("Success", "Master Password Set Successfully!")
@@ -202,6 +206,9 @@ class MasterPasswordManager:
         toggle_button = tb.Button(control_frame, image=self.eye_closed, bootstyle="danger-outline", width=30)
         toggle_button.grid(row=0, column=0, padx=5)
 
+        ToolTip(toggle_button, text="Password Hidden")
+
+
         def toggle_password():
             """Toggle password visibility on each button click."""
             self.password_visible = not self.password_visible  # Switch state
@@ -229,6 +236,8 @@ class MasterPasswordManager:
         # Generate Password Button (Column 1)
         generate_button = tb.Button(control_frame, image=self.generate, bootstyle="primary-outline", command=self.on_generate_password)
         generate_button.grid(row=0, column=1, padx=5)
+
+        ToolTip(generate_button, text="Generate Password")
     
     def on_generate_password(self):
         """Generates a password and sets it in both password fields."""
@@ -266,6 +275,8 @@ class MasterPasswordManager:
         # Create the toggle button below the entry field
         toggle_button = tb.Button(parent, image=self.eye_closed, bootstyle="danger-outline", width=30)
 
+        ToolTip(toggle_button, text="Password Hidden")
+
         toggle_button.bind("<ButtonPress-1>", show_password)  
         toggle_button.bind("<ButtonRelease-1>", hide_password)  
 
@@ -274,7 +285,7 @@ class MasterPasswordManager:
     def show_main_box(self):
         """Function to display the main application UI **after** successful login."""
         self.root.title("ShatterLock - Password Manager")
-        self.root.geometry("900x600")
+        self.root.geometry("1200x800")
         self.root.resizable(True, True)
         self.clear_window()
 
