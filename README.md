@@ -1,5 +1,3 @@
----
-
 # 🔒 Shatter Lock – Secure Password Manager  
 **A lightweight, AES-encrypted password manager built with Tkinter and ttkbootstrap.**  
 
@@ -38,6 +36,4 @@ Shatter Lock utilizes:
 - [ ] **Cross-Platform Support (Windows, Linux, macOS)**  
 
 ## 📜 License  
-MIT License – Use it, modify it, and contribute!  
-
----
+Shatter Lock is licensed under the GNU General Public License (GPL). You are free to use, modify, and distribute it under the terms of the GPL.
