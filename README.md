@@ -32,8 +32,7 @@ Shatter Lock utilizes:
 
 ## 🏗️ Roadmap (Future Enhancements)  
 - [ ] **Export/Import Encrypted Vault**  
-- [ ] **Multi-user Support**  
-- [ ] **Cross-Platform Support (Windows, Linux, macOS)**  
+- [ ] **Multi-user Support**
 
 ## 📜 License  
 Shatter Lock is licensed under the GNU General Public License (GPL). You are free to use, modify, and distribute it under the terms of the GPL.
