@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import ttkbootstrap as tb
 
+import os
+
 from PIL import ImageTk, Image
 
 from utils.db_utils import store_entry  # Function to store data in DB
@@ -23,7 +25,10 @@ class AddEntryForm:
         self.window.resizable(False, False)
 
         # Disable the root window (MainBox's parent) while the form is open
-        self.root_window.attributes('-disabled', True)
+        if os.name == "nt":
+            self.root_window.attributes('-disabled', True)
+        else :
+            self.window.grab_set()
 
         # Ensure the main window is re-enabled when this window is closed manually
         self.window.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -161,7 +166,10 @@ class AddEntryForm:
             store_entry(website, username, password, description, category, self.encryption_key)  # Pass plain password
 
             # Re-enable MainBox's root window and close the form
-            self.root_window.attributes('-disabled', False)
+            if os.name == "nt":
+                self.root_window.attributes('-disabled', False)
+            else:
+                self.window.grab_set()
             self.window.destroy()
         else:
             print("All fields except description must be filled!")  # Replace with a popup message if needed
